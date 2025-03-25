@@ -9,7 +9,6 @@ MemoryCaptures/
 .local
 # Visual Studio cache directory
 .vs/
-.vscode/
 .vs/SnakeUnity/xs/UserPrefs.xml
 Logs/
 
@@ -68,8 +67,6 @@ Assets/Plugins/Editor/JetBrains*
 
 Symbols/
 omnisharp.json
-Assets/Figma导出结构.json
-Assets/Figma导出结构.json.meta
 Assets/AssetBundleRes/Main/Database
 .editorconfig
 HybridCLRData/AOTDllOutput
