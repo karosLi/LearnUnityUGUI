@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UGUI架构交互式动画查看器</title>
+    <!-- 添加Marked.js库用于解析Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            overflow-x: hidden;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .document-list {
+            list-style: none;
+            padding: 0;
+        }
+        .document-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #34495e;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .document-item:hover {
+            background-color: #3498db;
+        }
+        .document-item.active {
+            background-color: #3498db;
+            font-weight: bold;
+        }
+        .animation-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .control-button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .control-button:hover {
+            background-color: #2980b9;
+        }
+        .control-button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .architecture-diagram {
+            width: 100%;
+            height: 500px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .markdown-content {
+            line-height: 1.6;
+        }
+        .markdown-content h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .markdown-content h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        .markdown-content h3 {
+            color: #2c3e50;
+        }
+        .markdown-content p {
+            margin: 15px 0;
+        }
+        .markdown-content code {
+            background-color: #f8f9fa;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .markdown-content pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .node {
+            position: absolute;
+            background-color: #3498db;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: scale(0.5);
+        }
+        .node.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        .connection {
+            position: absolute;
+            background-color: #95a5a6;
+            height: 2px;
+            transform-origin: left center;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        .connection.active {
+            opacity: 0.8;
+        }
+        .node-info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(44, 62, 80, 0.9);
+            color: white;
+            padding: 10px;
+            display: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .step-description {
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .step-counter {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        /* 移动设备适配 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>UGUI文档目录</h2>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="搜索文档..." oninput="searchDocuments(this.value)">
+            </div>
+            <ul class="document-list" id="document-list">
+                <!-- 文档列表将通过JavaScript动态加载 -->
+            </ul>
+            <div class="view-selector">
+                <h3>视图切换</h3>
+                <button class="control-button" id="arch-view-button">架构图</button>
+                <button class="control-button" id="seq-view-button">时序图</button>
+            </div>
+        </div>
+        <div class="content">
+            <div id="document-content" class="markdown-content">
+                <!-- 文档内容将在这里动态加载 -->
+                <h1>UGUI架构交互式动画查看器</h1>
+                <p>请从左侧菜单选择要查看的文档。</p>
+            </div>
+            <div class="animation-container">
+                <h2>UGUI架构图动画</h2>
+                <div class="step-description" id="step-description">
+                    点击"开始动画"按钮探索UGUI架构
+                </div>
+                <div class="step-counter" id="step-counter"></div>
+                <div id="architecture-diagram" class="architecture-diagram">
+                    <!-- 架构图将在这里动态生成 -->
+                </div>
+                <div class="controls">
+                    <button class="control-button" id="start-button">开始动画</button>
+                    <button class="control-button" id="next-button" disabled>下一步</button>
+                    <button class="control-button" id="prev-button" disabled>上一步</button>
+                    <button class="control-button" id="reset-button" disabled>重置</button>
+                    <button class="control-button" id="auto-play-button">自动播放</button>
+                    <button class="control-button" id="zoom-in-button">放大</button>
+                    <button class="control-button" id="zoom-out-button">缩小</button>
+                </div>
+                <div class="controls">
+                    <button class="control-button" id="highlight-canvas">突出Canvas</button>
+                    <button class="control-button" id="highlight-event">突出事件系统</button>
+                    <button class="control-button" id="highlight-layout">突出布局系统</button>
+                    <button class="control-button" id="highlight-renderer">突出渲染系统</button>
+                    <button class="control-button" id="reset-highlight-button">重置突出显示</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化架构图和文档
+        let currentStep = 0;
+        let totalSteps = 6;
+        let currentZoom = 1;
+        let animationStarted = false;
+        let currentView = 'architecture';
+        let markdownFiles = [
+            { id: 'architecture', title: 'UGUI架构', file: '../Docs/UGUI/UGUIArchitecture.md' },
+            { id: 'detailed-architecture', title: 'UGUI详细架构', file: '../Docs/UGUI/UGUIDetailedArchitecture.md' },
+            { id: 'system-relations', title: 'UGUI系统关系', file: '../Docs/UGUI/UGUISystemRelations.md' },
+            { id: 'complete-architecture', title: 'UGUI完整架构', file: '../Docs/UGUI/UGUICompleteArchitecture.md' },
+            { id: 'animation-architecture', title: 'UGUI架构交互式动画', file: '../Docs/UGUI/UGUI架构交互式动画.md' },
+            { id: 'event-system', title: 'UGUI事件系统', file: '../Docs/UGUI/UGUI事件系统.md' },
+            { id: 'optimization', title: 'UGUI优化指南', file: '../Docs/UGUI/UGUI优化指南.md' },
+            { id: 'sequence-animation', title: 'UGUI时序交互式动画', file: '../Docs/UGUI/UGUI时序交互式动画.md' },
+            { id: 'animation-index', title: 'UGUI交互式动画索引', file: '../Docs/UGUI/UGUI交互式动画索引.md' }
+        ];
+
+        // 步骤描述
+        const stepDescriptions = [
+            "UGUI架构概览：Unity的UI系统由多个协同工作的组件构成。点击下一步按钮继续。",
+            "Canvas是UGUI的核心，它充当所有UI元素的容器。CanvasScaler处理尺寸适配，GraphicRaycaster处理输入检测，CanvasRenderer负责渲染。",
+            "Canvas与其他主要系统的联系：布局系统负责元素排列，事件系统处理交互，UI组件构成实际界面。",
+            "UI组件层级：每个UI组件都包含RectTransform（用于定位和尺寸）和一个视觉组件（如Image、Text等）。",
+            "事件流程：输入事件从GraphicRaycaster发送到EventSystem，然后分发到具体的UI组件，触发相应的回调。",
+            "渲染流程：从Visual Components到CanvasRenderer，然后通过批处理机制优化性能，最终渲染到屏幕。"
+        ];
+
+        // 架构节点定义
+        const nodes = [
+            { id: 'unity-engine', name: 'Unity Engine', x: 400, y: 50, width: 200, height: 60, color: '#2c3e50', category: 'Engine' },
+            { id: 'canvas', name: 'Canvas', x: 400, y: 150, width: 160, height: 60, color: '#3498db', category: 'Canvas' },
+            { id: 'canvas-scaler', name: 'Canvas Scaler', x: 200, y: 250, width: 140, height: 50, color: '#2980b9', category: 'Canvas' },
+            { id: 'graphic-raycaster', name: 'Graphic Raycaster', x: 400, y: 250, width: 140, height: 50, color: '#2980b9', category: 'Event' },
+            { id: 'canvas-renderer', name: 'Canvas Renderer', x: 600, y: 250, width: 140, height: 50, color: '#2980b9', category: 'Renderer' },
+            { id: 'layout-system', name: 'Layout System', x: 200, y: 350, width: 140, height: 50, color: '#27ae60', category: 'Layout' },
+            { id: 'event-system', name: 'Event System', x: 400, y: 350, width: 140, height: 50, color: '#27ae60', category: 'Event' },
+            { id: 'ui-components', name: 'UI Components', x: 600, y: 350, width: 140, height: 50, color: '#27ae60', category: 'UI' },
+            { id: 'rect-transform', name: 'RectTransform', x: 520, y: 450, width: 120, height: 50, color: '#16a085', category: 'UI' },
+            { id: 'visual-components', name: 'Visual Components', x: 680, y: 450, width: 140, height: 50, color: '#16a085', category: 'Renderer' }
+        ];
+
+        // 连接定义
+        const connections = [
+            // 步骤1连接
+            { from: 'unity-engine', to: 'canvas', step: 1 },
+            
+            // 步骤2连接
+            { from: 'canvas', to: 'canvas-scaler', step: 2 },
+            { from: 'canvas', to: 'graphic-raycaster', step: 2 },
+            { from: 'canvas', to: 'canvas-renderer', step: 2 },
+            
+            // 步骤3连接
+            { from: 'canvas', to: 'layout-system', step: 3 },
+            { from: 'canvas', to: 'event-system', step: 3 },
+            { from: 'canvas', to: 'ui-components', step: 3 },
+            
+            // 步骤4连接
+            { from: 'ui-components', to: 'rect-transform', step: 4 },
+            { from: 'ui-components', to: 'visual-components', step: 4 },
+            
+            // 步骤5连接
+            { from: 'graphic-raycaster', to: 'event-system', step: 5 },
+            { from: 'event-system', to: 'ui-components', step: 5 },
+            
+            // 步骤6连接
+            { from: 'visual-components', to: 'canvas-renderer', step: 6 },
+            { from: 'canvas-renderer', to: 'canvas', step: 6 }
+        ];
+
+        // 节点详细信息
+        const nodeDetails = {
+            'unity-engine': 'Unity引擎是整个系统的基础，提供渲染、输入和更新循环等核心功能。',
+            'canvas': 'Canvas是所有UI元素的容器，定义了UI的渲染方式（Screen Space或World Space）。',
+            'canvas-scaler': 'CanvasScaler处理UI的缩放和适配，支持多种缩放模式（Constant Pixel Size、Scale With Screen Size等）。',
+            'graphic-raycaster': 'GraphicRaycaster负责检测输入事件（如点击）并将它们发送到事件系统。',
+            'canvas-renderer': 'CanvasRenderer将UI元素转换为可渲染的网格，并处理批处理优化。',
+            'layout-system': '布局系统管理UI元素的排列和尺寸，包括多种布局组件（如VerticalLayoutGroup等）。',
+            'event-system': '事件系统处理和分发输入事件，管理UI元素的选择状态和导航。',
+            'ui-components': 'UI组件包括Button、Image、Text等内置组件，以及用户自定义UI组件。',
+            'rect-transform': 'RectTransform扩展自Transform组件，专门处理2D矩形的位置、尺寸和锚点。',
+            'visual-components': 'Visual Components如Image、Text等，负责实际的视觉呈现。'
+        };
+
+        // 添加到script部分
+        let autoPlayInterval = null;
+        let isAutoPlaying = false;
+
+        // 架构图步骤描述
+        const architectureStepDescriptions = [
+            "UGUI架构概览：Unity的UI系统由多个协同工作的组件构成。点击下一步按钮继续。",
+            "Canvas是UGUI的核心，它充当所有UI元素的容器。CanvasScaler处理尺寸适配，GraphicRaycaster处理输入检测，CanvasRenderer负责渲染。",
+            "Canvas与其他主要系统的联系：布局系统负责元素排列，事件系统处理交互，UI组件构成实际界面。",
+            "UI组件层级：每个UI组件都包含RectTransform（用于定位和尺寸）和一个视觉组件（如Image、Text等）。",
+            "事件流程：输入事件从GraphicRaycaster发送到EventSystem，然后分发到具体的UI组件，触发相应的回调。",
+            "渲染流程：从Visual Components到CanvasRenderer，然后通过批处理机制优化性能，最终渲染到屏幕。"
+        ];
+
+        // 时序图步骤描述
+        let sequenceStepDescriptions = [
+            "UGUI事件流程开始：用户与UI界面交互",
+            "用户的点击或触摸被Unity的Input系统捕获",
+            "Input系统将输入事件传递给EventSystem",
+            "EventSystem找到被点击的UI组件并调用其OnPointerClick回调",
+            "UI组件状态改变后，通知CanvasRenderer需要重新渲染",
+            "CanvasRenderer更新材质属性并传递给Graphic组件",
+            "Graphic组件生成渲染数据并返回给CanvasRenderer进行最终渲染"
+        ];
+
+        // 时序图相关
+        let sequenceDiagramInitialized = false;
+
+        // DOM就绪后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化
+            init();
+            
+            // 添加事件监听器
+            document.getElementById('start-button').addEventListener('click', startAnimation);
+            document.getElementById('next-button').addEventListener('click', nextStep);
+            document.getElementById('prev-button').addEventListener('click', prevStep);
+            document.getElementById('reset-button').addEventListener('click', resetAnimation);
+            document.getElementById('auto-play-button').addEventListener('click', toggleAutoPlay);
+            document.getElementById('zoom-in-button').addEventListener('click', zoomIn);
+            document.getElementById('zoom-out-button').addEventListener('click', zoomOut);
+            
+            document.getElementById('highlight-canvas').addEventListener('click', function() {
+                highlightNodes('Canvas');
+            });
+            document.getElementById('highlight-event').addEventListener('click', function() {
+                highlightNodes('Event');
+            });
+            document.getElementById('highlight-layout').addEventListener('click', function() {
+                highlightNodes('Layout');
+            });
+            document.getElementById('highlight-renderer').addEventListener('click', function() {
+                highlightNodes('Renderer');
+            });
+            document.getElementById('reset-highlight-button').addEventListener('click', resetHighlight);
+            
+            document.getElementById('arch-view-button').addEventListener('click', function() {
+                switchView('architecture');
+            });
+            document.getElementById('seq-view-button').addEventListener('click', function() {
+                switchView('sequence');
+            });
+            
+            // 窗口大小变化时更新连接线位置
+            window.addEventListener('resize', function() {
+                document.querySelectorAll('.connection.active').forEach(updateConnectionPosition);
+            });
+        });
+
+        // 自动播放功能
+        function toggleAutoPlay() {
+            if (isAutoPlaying) {
+                stopAutoPlay();
+            } else {
+                startAutoPlay();
+            }
+        }
+
+        function startAutoPlay() {
+            if (!animationStarted) {
+                startAnimation();
+            }
+            isAutoPlaying = true;
+            document.getElementById('auto-play-button').textContent = '停止自动播放';
+            autoPlayInterval = setInterval(() => {
+                if (currentStep >= totalSteps) {
+                    stopAutoPlay();
+                } else {
+                    nextStep();
+                }
+            }, 3000); // 每3秒前进一步
+        }
+
+        function stopAutoPlay() {
+            isAutoPlaying = false;
+            document.getElementById('auto-play-button').textContent = '自动播放';
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+            }
+        }
+
+        // 初始化函数
+        function init() {
+            loadDocumentList();
+            createArchitectureDiagram();
+            updateUI();
+        }
+
+        // 加载文档列表
+        function loadDocumentList() {
+            const docList = document.getElementById('document-list');
+            docList.innerHTML = '';
+            
+            markdownFiles.forEach(doc => {
+                const li = document.createElement('li');
+                li.className = 'document-item';
+                li.textContent = doc.title;
+                li.setAttribute('data-id', doc.id);
+                li.addEventListener('click', function() {
+                    loadDocument(doc.id);
+                });
+                docList.appendChild(li);
+            });
+        }
+
+        // 搜索文档
+        function searchDocuments(query) {
+            query = query.toLowerCase();
+            const docList = document.getElementById('document-list');
+            const items = docList.getElementsByClassName('document-item');
+            
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const text = item.textContent.toLowerCase();
+                
+                if (text.includes(query)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            }
+        }
+
+        // 加载文档内容
+        function loadDocument(docId) {
+            // 设置活动状态
+            const items = document.getElementsByClassName('document-item');
+            for (let i = 0; i < items.length; i++) {
+                items[i].classList.remove('active');
+                if (items[i].getAttribute('data-id') === docId) {
+                    items[i].classList.add('active');
+                }
+            }
+            
+            // 查找文档
+            const doc = markdownFiles.find(d => d.id === docId);
+            if (!doc) return;
+            
+            // 显示加载中状态
+            const content = document.getElementById('document-content');
+            content.innerHTML = `<h1>${doc.title}</h1><p>正在加载文档内容...</p>`;
+            
+            // 使用fetch API加载Markdown内容
+            fetch(doc.file)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(markdown => {
+                    // 使用marked.js解析Markdown
+                    const htmlContent = marked.parse(markdown);
+                    content.innerHTML = htmlContent;
+                })
+                .catch(error => {
+                    console.error('加载文档时出错:', error);
+                    content.innerHTML = `
+                        <h1>${doc.title}</h1>
+                        <div class="error-message">
+                            <p>加载文档时出错: ${error.message}</p>
+                            <p>请确保文件路径正确并且文件存在。</p>
+                            <p>注意：如果直接在本地打开HTML文件，可能会受到浏览器的安全策略限制。
+                            请考虑使用本地Web服务器运行此页面。</p>
+                        </div>
+                    `;
+                });
+        }
+
+        // 创建架构图
+        function createArchitectureDiagram() {
+            const diagram = document.getElementById('architecture-diagram');
+            diagram.innerHTML = '';
+            
+            // 创建连接
+            connections.forEach((connection, index) => {
+                const connectionElement = document.createElement('div');
+                connectionElement.className = 'connection';
+                connectionElement.id = `connection-${index}`;
+                connectionElement.setAttribute('data-from', connection.from);
+                connectionElement.setAttribute('data-to', connection.to);
+                connectionElement.setAttribute('data-step', connection.step);
+                diagram.appendChild(connectionElement);
+            });
+            
+            // 创建节点
+            nodes.forEach(node => {
+                const nodeElement = document.createElement('div');
+                nodeElement.className = 'node';
+                nodeElement.id = node.id;
+                nodeElement.textContent = node.name;
+                nodeElement.style.left = `${node.x - node.width/2}px`;
+                nodeElement.style.top = `${node.y - node.height/2}px`;
+                nodeElement.style.width = `${node.width}px`;
+                nodeElement.style.height = `${node.height}px`;
+                nodeElement.style.backgroundColor = node.color;
+                nodeElement.setAttribute('data-category', node.category);
+                
+                // 添加点击事件
+                nodeElement.addEventListener('click', function() {
+                    showNodeDetails(node.id);
+                });
+                
+                // 添加信息框
+                const infoBox = document.createElement('div');
+                infoBox.className = 'node-info';
+                infoBox.id = `${node.id}-info`;
+                infoBox.textContent = nodeDetails[node.id] || '无详细信息';
+                nodeElement.appendChild(infoBox);
+                
+                diagram.appendChild(nodeElement);
+            });
+        }
+
+        // 视图控制
+        function switchView(viewType) {
+            currentView = viewType;
+            resetAnimation();
+            
+            if (viewType === 'architecture') {
+                if (document.getElementById('architecture-diagram')) {
+                    document.getElementById('architecture-diagram').style.display = 'block';
+                }
+                if (document.getElementById('sequence-diagram-container')) {
+                    document.getElementById('sequence-diagram-container').style.display = 'none';
+                }
+                document.querySelector('h2').textContent = 'UGUI架构图动画';
+            } else if (viewType === 'sequence') {
+                if (document.getElementById('architecture-diagram')) {
+                    document.getElementById('architecture-diagram').style.display = 'none';
+                }
+                
+                // 检查时序图容器是否存在
+                if (!document.getElementById('sequence-diagram-container')) {
+                    initSequenceDiagram();
+                } else {
+                    document.getElementById('sequence-diagram-container').style.display = 'block';
+                }
+                
+                document.querySelector('h2').textContent = 'UGUI时序图动画';
+                // 初始化时序图
+                if (!sequenceDiagramInitialized) {
+                    initSequenceDiagram();
+                    sequenceDiagramInitialized = true;
+                }
+            }
+        }
+
+        // 时序图相关
+        function initSequenceDiagram() {
+            const container = document.getElementById('sequence-diagram-container');
+            if (!container) {
+                // 创建时序图容器
+                const animContainer = document.querySelector('.animation-container');
+                const seqContainer = document.createElement('div');
+                seqContainer.id = 'sequence-diagram-container';
+                seqContainer.className = 'architecture-diagram';
+                seqContainer.style.display = 'none';
+                animContainer.insertBefore(seqContainer, document.getElementById('step-counter'));
+                
+                // 创建时序图内容
+                createSequenceDiagram(seqContainer);
+            }
+        }
+
+        function createSequenceDiagram(container) {
+            // 定义时序图参数
+            const actors = [
+                { id: 'user', name: '用户', x: 100, color: '#e74c3c' },
+                { id: 'input', name: 'Input', x: 200, color: '#e67e22' },
+                { id: 'event-system', name: 'EventSystem', x: 300, color: '#f1c40f' },
+                { id: 'ui-component', name: 'UI组件', x: 400, color: '#2ecc71' },
+                { id: 'canvas-renderer', name: 'CanvasRenderer', x: 500, color: '#3498db' },
+                { id: 'graphic', name: 'Graphic', x: 600, color: '#9b59b6' }
+            ];
+            
+            // 创建角色
+            actors.forEach(actor => {
+                const actorEl = document.createElement('div');
+                actorEl.className = 'actor';
+                actorEl.id = `actor-${actor.id}`;
+                actorEl.textContent = actor.name;
+                actorEl.style.position = 'absolute';
+                actorEl.style.top = '30px';
+                actorEl.style.left = `${actor.x}px`;
+                actorEl.style.width = '80px';
+                actorEl.style.height = '40px';
+                actorEl.style.backgroundColor = actor.color;
+                actorEl.style.color = 'white';
+                actorEl.style.display = 'flex';
+                actorEl.style.alignItems = 'center';
+                actorEl.style.justifyContent = 'center';
+                actorEl.style.borderRadius = '5px';
+                actorEl.style.fontWeight = 'bold';
+                container.appendChild(actorEl);
+                
+                // 创建生命线
+                const lifeline = document.createElement('div');
+                lifeline.className = 'lifeline';
+                lifeline.id = `lifeline-${actor.id}`;
+                lifeline.style.position = 'absolute';
+                lifeline.style.top = '70px';
+                lifeline.style.left = `${actor.x + 40}px`;
+                lifeline.style.width = '1px';
+                lifeline.style.height = '400px';
+                lifeline.style.backgroundColor = '#95a5a6';
+                lifeline.style.borderLeft = `2px dashed ${actor.color}`;
+                container.appendChild(lifeline);
+            });
+            
+            // 定义消息
+            const messages = [
+                { from: 'user', to: 'input', text: '点击/触摸', y: 100, step: 1 },
+                { from: 'input', to: 'event-system', text: '输入事件', y: 150, step: 2 },
+                { from: 'event-system', to: 'ui-component', text: 'OnPointerClick', y: 200, step: 3 },
+                { from: 'ui-component', to: 'canvas-renderer', text: '标记为脏(SetDirty)', y: 250, step: 4 },
+                { from: 'canvas-renderer', to: 'graphic', text: '更新材质', y: 300, step: 5 },
+                { from: 'graphic', to: 'canvas-renderer', text: '返回渲染数据', y: 350, step: 6 }
+            ];
+            
+            // 创建消息
+            messages.forEach((msg, index) => {
+                // 找到发送者和接收者
+                const fromActor = actors.find(a => a.id === msg.from);
+                const toActor = actors.find(a => a.id === msg.to);
+                
+                if (!fromActor || !toActor) return;
+                
+                // 计算箭头
+                const fromX = fromActor.x + 40;
+                const toX = toActor.x + 40;
+                const width = Math.abs(toX - fromX);
+                const left = Math.min(fromX, toX);
+                
+                // 创建消息元素
+                const msgEl = document.createElement('div');
+                msgEl.className = 'sequence-message';
+                msgEl.id = `message-${index}`;
+                msgEl.setAttribute('data-step', msg.step);
+                msgEl.style.position = 'absolute';
+                msgEl.style.top = `${msg.y}px`;
+                msgEl.style.left = `${left}px`;
+                msgEl.style.width = `${width}px`;
+                msgEl.style.height = '1px';
+                msgEl.style.backgroundColor = '#34495e';
+                
+                // 添加箭头和文本
+                const isRightDirection = fromX < toX;
+                const arrowEl = document.createElement('div');
+                arrowEl.className = 'arrow';
+                arrowEl.style.position = 'absolute';
+                arrowEl.style.top = '-5px';
+                if (isRightDirection) {
+                    arrowEl.style.right = '-10px';
+                    arrowEl.innerHTML = '►';
+                } else {
+                    arrowEl.style.left = '-10px';
+                    arrowEl.innerHTML = '◄';
+                }
+                arrowEl.style.color = '#34495e';
+                msgEl.appendChild(arrowEl);
+                
+                const textEl = document.createElement('div');
+                textEl.className = 'message-text';
+                textEl.textContent = msg.text;
+                textEl.style.position = 'absolute';
+                textEl.style.top = '-25px';
+                textEl.style.width = '100%';
+                textEl.style.textAlign = 'center';
+                textEl.style.fontSize = '12px';
+                msgEl.appendChild(textEl);
+                
+                // 初始隐藏
+                msgEl.style.opacity = '0';
+                msgEl.style.transition = 'opacity 0.5s ease';
+                
+                container.appendChild(msgEl);
+            });
+        }
+
+        // 更新动画
+        function updateAnimation() {
+            if (currentView === 'architecture') {
+                updateArchitectureAnimation();
+            } else if (currentView === 'sequence') {
+                updateSequenceAnimation();
+            }
+        }
+
+        // 更新架构图动画
+        function updateArchitectureAnimation() {
+            // 处理节点显示
+            document.querySelectorAll('.node').forEach(node => {
+                const nodeStep = getNodeStep(node.id);
+                if (nodeStep <= currentStep) {
+                    node.classList.add('active');
+                } else {
+                    node.classList.remove('active');
+                }
+            });
+            
+            // 处理连接显示
+            document.querySelectorAll('.connection').forEach(conn => {
+                const connStep = parseInt(conn.getAttribute('data-step'));
+                if (connStep <= currentStep) {
+                    conn.classList.add('active');
+                    updateConnectionPosition(conn);
+                } else {
+                    conn.classList.remove('active');
+                }
+            });
+        }
+
+        // 更新时序图动画
+        function updateSequenceAnimation() {
+            document.querySelectorAll('.sequence-message').forEach(msg => {
+                const msgStep = parseInt(msg.getAttribute('data-step'));
+                if (msgStep <= currentStep) {
+                    msg.style.opacity = '1';
+                } else {
+                    msg.style.opacity = '0';
+                }
+            });
+        }
+
+        // 获取节点应该在哪个步骤显示
+        function getNodeStep(nodeId) {
+            // 根据连接关系确定节点的显示步骤
+            let step = Infinity;
+            connections.forEach(conn => {
+                if ((conn.from === nodeId || conn.to === nodeId) && conn.step < step) {
+                    step = conn.step;
+                }
+            });
+            return step === Infinity ? 1 : step;
+        }
+
+        // 更新UI状态
+        function updateUI() {
+            document.getElementById('step-counter').textContent = `步骤 ${currentStep}/${totalSteps}`;
+            
+            // 根据当前视图选择不同的描述
+            if (currentView === 'architecture') {
+                if (currentStep > 0 && currentStep <= architectureStepDescriptions.length) {
+                    document.getElementById('step-description').textContent = architectureStepDescriptions[currentStep - 1];
+                } else {
+                    document.getElementById('step-description').textContent = "点击开始动画按钮探索UGUI架构";
+                }
+            } else if (currentView === 'sequence') {
+                if (currentStep > 0 && currentStep <= sequenceStepDescriptions.length) {
+                    document.getElementById('step-description').textContent = sequenceStepDescriptions[currentStep - 1];
+                } else {
+                    document.getElementById('step-description').textContent = "点击开始动画按钮探索UGUI事件流程";
+                }
+            }
+            
+            document.getElementById('prev-button').disabled = currentStep <= 1 || !animationStarted;
+            document.getElementById('next-button').disabled = currentStep >= totalSteps || !animationStarted;
+            document.getElementById('reset-button').disabled = !animationStarted;
+            document.getElementById('start-button').disabled = animationStarted;
+        }
+
+        // 开始动画
+        function startAnimation() {
+            animationStarted = true;
+            currentStep = 1;
+            updateUI();
+            updateAnimation();
+        }
+
+        // 下一步
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateUI();
+                updateAnimation();
+            }
+        }
+
+        // 上一步
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+                updateAnimation();
+            }
+        }
+
+        // 重置动画
+        function resetAnimation() {
+            // 停止自动播放
+            stopAutoPlay();
+            
+            // 隐藏所有节点和连接
+            document.querySelectorAll('.node').forEach(node => {
+                node.classList.remove('active');
+                // 添加重置动画效果
+                node.style.transition = 'all 0.5s ease';
+            });
+            
+            document.querySelectorAll('.connection').forEach(conn => {
+                conn.classList.remove('active');
+            });
+            
+            animationStarted = false;
+            currentStep = 0;
+            updateUI();
+        }
+
+        // 更新连接线位置
+        function updateConnectionPosition(conn) {
+            const fromNode = document.getElementById(conn.getAttribute('data-from'));
+            const toNode = document.getElementById(conn.getAttribute('data-to'));
+            
+            if (!fromNode || !toNode) return;
+            
+            const fromRect = fromNode.getBoundingClientRect();
+            const toRect = toNode.getBoundingClientRect();
+            const diagramRect = document.getElementById('architecture-diagram').getBoundingClientRect();
+            
+            // 计算相对于图表容器的位置
+            const fromX = fromRect.left + fromRect.width/2 - diagramRect.left;
+            const fromY = fromRect.top + fromRect.height/2 - diagramRect.top;
+            const toX = toRect.left + toRect.width/2 - diagramRect.left;
+            const toY = toRect.top + toRect.height/2 - diagramRect.top;
+            
+            // 计算线条长度和角度
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const length = Math.sqrt(dx*dx + dy*dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            // 设置连接线样式
+            conn.style.width = `${length}px`;
+            conn.style.left = `${fromX}px`;
+            conn.style.top = `${fromY}px`;
+            conn.style.transform = `rotate(${angle}deg)`;
+        }
+
+        // 显示节点详细信息
+        function showNodeDetails(nodeId) {
+            // 隐藏所有信息框
+            document.querySelectorAll('.node-info').forEach(info => {
+                info.style.display = 'none';
+            });
+            
+            // 显示当前节点的信息框
+            const infoBox = document.getElementById(`${nodeId}-info`);
+            if (infoBox) {
+                infoBox.style.display = 'block';
+                
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    infoBox.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 缩放控制
+        function zoomIn() {
+            if (currentZoom < 2) {
+                currentZoom += 0.1;
+                applyZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoom > 0.5) {
+                currentZoom -= 0.1;
+                applyZoom();
+            }
+        }
+
+        function applyZoom() {
+            const diagram = document.getElementById('architecture-diagram');
+            diagram.style.transform = `scale(${currentZoom})`;
+            diagram.style.transformOrigin = 'center center';
+        }
+
+        // 高亮特定类别的节点
+        function highlightNodes(category) {
+            document.querySelectorAll('.node').forEach(node => {
+                if (node.getAttribute('data-category').includes(category)) {
+                    node.style.boxShadow = '0 0 15px 5px #e74c3c';
+                    node.style.zIndex = '10';
+                } else {
+                    node.style.opacity = '0.4';
+                }
+            });
+        }
+
+        // 重置高亮
+        function resetHighlight() {
+            document.querySelectorAll('.node').forEach(node => {
+                node.style.boxShadow = '';
+                node.style.opacity = '';
+                node.style.zIndex = '';
+            });
+        }
+    </script>
+</body>
+</html>

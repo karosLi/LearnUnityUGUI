@@ -1,0 +1,117 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UGUI事件系统指南
+
+Unity UGUI的事件系统是处理用户输入和交互的核心。本指南详细介绍了事件系统的工作原理和使用方法。
+
+## 核心组件
+
+### 事件系统
+- `EventSystem`: 整个事件系统的管理器，位于[Runtime/EventSystem/EventSystem.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/EventSystem.cs)
+- `BaseInputModule`: 输入模块基类，位于[Runtime/EventSystem/InputModules/BaseInputModule.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/InputModules/BaseInputModule.cs)
+- `StandaloneInputModule`: 标准输入模块，处理鼠标/键盘，位于[Runtime/EventSystem/InputModules/StandaloneInputModule.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/InputModules/StandaloneInputModule.cs)
+
+### 射线检测
+- `GraphicRaycaster`: 图形射线检测，位于[Runtime/UI/Core/GraphicRaycaster.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/GraphicRaycaster.cs)
+- `Physics2DRaycaster`: 2D物理射线检测，位于[Runtime/EventSystem/PhysicsRaycasters/Physics2DRaycaster.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/PhysicsRaycasters/Physics2DRaycaster.cs)
+- `PhysicsRaycaster`: 3D物理射线检测，位于[Runtime/EventSystem/PhysicsRaycasters/PhysicsRaycaster.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/PhysicsRaycasters/PhysicsRaycaster.cs)
+
+### 事件接口
+- `IEventSystemHandler`: 事件处理接口基类，位于[Runtime/EventSystem/EventSystem.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/EventSystem.cs)
+- `IPointerClickHandler`: 点击事件接口，位于[Runtime/EventSystem/EventSystems/ExecuteEvents.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/EventSystems/ExecuteEvents.cs)
+- `IDragHandler`: 拖拽事件接口，位于[Runtime/EventSystem/EventSystems/ExecuteEvents.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/EventSystems/ExecuteEvents.cs)
+
+## 事件流程
+
+### 输入处理
+1. `EventSystem`接收各种输入(鼠标、触摸、键盘等)
+2. 通过`Physics2DRaycaster`或`GraphicRaycaster`确定点击位置的UI元素
+3. 事件按照ExecuteEvents定义的顺序传递给接收者
+4. UI元素通过实现IEventSystemHandler的接口来接收事件
+
+### 事件传递
+- `ExecuteEvents`: 事件执行器，位于[Runtime/EventSystem/EventSystems/ExecuteEvents.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/EventSystems/ExecuteEvents.cs)
+- `EventTrigger`: 事件触发器，位于[Runtime/EventSystem/EventTrigger.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/EventTrigger.cs)
+
+## 常用事件类型
+
+### 指针事件
+- `IPointerClickHandler`: 点击
+- `IPointerDownHandler`: 按下
+- `IPointerUpHandler`: 抬起
+- `IPointerEnterHandler`: 进入
+- `IPointerExitHandler`: 退出
+
+### 拖拽事件
+- `IBeginDragHandler`: 开始拖拽
+- `IDragHandler`: 拖拽中
+- `IEndDragHandler`: 结束拖拽
+
+### 滚动事件
+- `IScrollHandler`: 滚动
+- `IInitializePotentialDragHandler`: 初始化潜在拖拽
+
+## 事件处理
+
+### 直接实现接口
+```csharp
+public class MyUIElement : MonoBehaviour, IPointerClickHandler
+{
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        Debug.Log("Clicked!");
+    }
+}
+```
+
+### 使用EventTrigger
+```csharp
+public class MyUIElement : MonoBehaviour
+{
+    void Start()
+    {
+        EventTrigger trigger = gameObject.AddComponent<EventTrigger>();
+        EventTrigger.Entry entry = new EventTrigger.Entry();
+        entry.eventID = EventTriggerType.PointerClick;
+        entry.callback.AddListener((data) => { OnPointerClick((PointerEventData)data); });
+        trigger.triggers.Add(entry);
+    }
+
+    void OnPointerClick(PointerEventData data)
+    {
+        Debug.Log("Clicked!");
+    }
+}
+```
+
+## 性能优化
+
+### 射线检测优化
+- 合理设置Raycast Target
+- 使用Canvas Group控制整体交互
+- 避免过多的UI元素
+
+### 事件处理优化
+- 使用事件委托而不是Update检测
+- 合理使用EventTrigger
+- 避免在事件处理中执行耗时操作
+
+## 最佳实践
+
+### 事件处理
+- 使用事件系统而不是Update检测
+- 合理使用EventTrigger
+- 实现IPointerClickHandler等接口
+- 使用事件委托而不是直接引用
+
+### 事件传递
+- 使用事件系统进行模块间通信
+- 避免直接引用其他组件
+- 合理使用事件委托
+
+## 详细文档
+更详细的事件系统用法可以参考：
+- [UGUI组件使用指南](mdc:Docs/Guide/UGUI组件使用指南.md)

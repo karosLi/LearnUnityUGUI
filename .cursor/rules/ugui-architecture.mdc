@@ -1,0 +1,84 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UGUI架构指南
+
+Unity UGUI系统的核心架构和工作原理。
+
+## 核心架构
+
+### 类层次结构
+- `MonoBehaviour` → `UIBehaviour`: UI组件的基类，位于[Runtime/EventSystem/UIBehaviour.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/UIBehaviour.cs)
+- `UIBehaviour` → `Graphic`: 可视UI元素的基类，位于[Runtime/UI/Core/Graphic.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Graphic.cs)
+- `Graphic` → `MaskableGraphic`: 支持遮罩的图形元素，位于[Runtime/UI/Core/MaskableGraphic.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/MaskableGraphic.cs)
+- `MaskableGraphic` → `Text`, `Image`, `RawImage`: 具体的可视组件
+
+### 渲染流程
+1. Canvas收集所有子Graphic元素
+2. CanvasRenderer处理元素绘制
+3. Canvas Batching合并相同材质的元素
+4. 最终通过CanvasRenderer渲染到屏幕
+
+## 事件系统
+
+### 核心组件
+- `EventSystem`: 整个事件系统的管理器，位于[Runtime/EventSystem/EventSystem.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/EventSystem.cs)
+- `BaseInputModule`: 输入模块基类，位于[Runtime/EventSystem/InputModules/BaseInputModule.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/InputModules/BaseInputModule.cs)
+- `StandaloneInputModule`: 标准输入模块，处理鼠标/键盘，位于[Runtime/EventSystem/InputModules/StandaloneInputModule.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/InputModules/StandaloneInputModule.cs)
+
+### 事件流程
+1. `EventSystem`接收各种输入(鼠标、触摸、键盘等)
+2. 通过`Physics2DRaycaster`或`GraphicRaycaster`确定点击位置的UI元素
+3. 事件按照ExecuteEvents定义的顺序传递给接收者
+4. UI元素通过实现IEventSystemHandler的接口来接收事件
+
+## 布局系统
+
+### 关键类
+- `RectTransform`: UI元素位置和大小控制，源码在Unity内部
+- `LayoutGroup`: 布局组基类，位于[Runtime/UI/Core/Layout/LayoutGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/LayoutGroup.cs)
+- `LayoutRebuilder`: 负责重新计算和应用布局，位于[Runtime/UI/Core/Layout/LayoutRebuilder.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/LayoutRebuilder.cs)
+
+### 布局过程
+1. 当RectTransform或LayoutGroup属性改变时，标记需要重建
+2. LayoutRebuilder按照从父到子的顺序计算最小/首选大小
+3. 然后从子到父应用布局规则
+4. Canvas触发重建（通常在LateUpdate中）
+
+## 交互组件
+
+### Selectable系统
+- `Selectable`: 可交互元素的基类，位于[Runtime/UI/Core/Selectable.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Selectable.cs)
+- `Button`, `Toggle`, `Scrollbar`, `Dropdown`, `Slider`都继承自Selectable
+- 处理高亮、选择、按下、禁用等状态
+
+### 交互状态
+- 状态切换由Transition属性控制(ColorTint, SpriteSwap, Animation)
+- 交互组件通过Navigation属性处理键盘/手柄导航
+
+## 扩展和定制
+
+### 自定义组件
+- 继承自合适的基类(Graphic, Selectable等)
+- 实现OnPopulateMesh方法来创建自定义外观
+- 实现相应的接口来处理交互(IPointerClickHandler等)
+
+### 常用接口
+- `ILayoutElement`: 自定义布局元素
+- `ICanvasElement`: Canvas管理的元素
+- `IPointerClickHandler`: 处理点击事件
+- `IScrollHandler`: 处理滚动事件
+
+## 架构图
+
+整个UGUI系统可以分为以下几层：
+1. **渲染层**: Canvas, CanvasRenderer, Graphic派生类
+2. **事件层**: EventSystem, Raycaster, InputModule
+3. **布局层**: RectTransform, LayoutGroup, ContentSizeFitter
+4. **交互层**: Selectable及其派生类
+5. **脚本层**: 自定义组件和Manager
+
+详细架构图和交互流程请参考:
+- [UGUI组件使用指南](mdc:Docs/Guide/UGUI组件使用指南.md)

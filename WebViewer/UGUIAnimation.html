@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UGUI动画示例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .animation-example {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        .fade-element {
+            padding: 20px;
+            background-color: #2196F3;
+            color: white;
+            margin: 10px 0;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+        .fade-element.fade-out {
+            opacity: 0;
+        }
+        .slide-element {
+            padding: 20px;
+            background-color: #FF9800;
+            color: white;
+            margin: 10px 0;
+            transform: translateX(0);
+            transition: transform 0.5s ease;
+        }
+        .slide-element.slide-right {
+            transform: translateX(100px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>UGUI动画示例</h1>
+        
+        <div class="animation-example">
+            <h2>按钮动画</h2>
+            <button class="button">悬停效果</button>
+        </div>
+
+        <div class="animation-example">
+            <h2>淡入淡出效果</h2>
+            <div class="fade-element">点击按钮查看淡出效果</div>
+            <button class="button" onclick="toggleFade()">切换淡出</button>
+        </div>
+
+        <div class="animation-example">
+            <h2>滑动效果</h2>
+            <div class="slide-element">点击按钮查看滑动效果</div>
+            <button class="button" onclick="toggleSlide()">切换滑动</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleFade() {
+            const element = document.querySelector('.fade-element');
+            element.classList.toggle('fade-out');
+        }
+
+        function toggleSlide() {
+            const element = document.querySelector('.slide-element');
+            element.classList.toggle('slide-right');
+        }
+    </script>
+</body>
+</html> 

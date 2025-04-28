@@ -1,0 +1,49 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UGUI组件指南
+
+Unity UGUI (Unity UI)是Unity的UI系统，用于创建用户界面。以下是主要组件的概览：
+
+## 核心组件
+
+### 可视化组件
+- Image: 显示Sprite图像，位于[Runtime/UI/Core/Image.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Image.cs)
+- RawImage: 显示Texture纹理，位于[Runtime/UI/Core/RawImage.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/RawImage.cs)
+- Text: 显示文本，位于[Runtime/UI/Core/Text.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Text.cs)
+- Mask: UI遮罩，位于[Runtime/UI/Core/Mask.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Mask.cs)
+- RectMask2D: 高性能矩形遮罩，位于[Runtime/UI/Core/RectMask2D.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/RectMask2D.cs)
+
+### 交互组件
+- Button: 按钮，位于[Runtime/UI/Core/Button.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Button.cs)
+- Toggle: 开关/复选框，位于[Runtime/UI/Core/Toggle.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Toggle.cs)
+- Slider: 滑动条，位于[Runtime/UI/Core/Slider.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Slider.cs)
+- Scrollbar: 滚动条，位于[Runtime/UI/Core/Scrollbar.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Scrollbar.cs)
+- Dropdown: 下拉菜单，位于[Runtime/UI/Core/Dropdown.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Dropdown.cs)
+- InputField: 输入框，位于[Runtime/UI/Core/InputField.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/InputField.cs)
+- ScrollRect: 滚动视图，位于[Runtime/UI/Core/ScrollRect.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/ScrollRect.cs)
+
+### 布局组件
+- LayoutGroup: 布局组基类，位于[Runtime/UI/Core/Layout/LayoutGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/LayoutGroup.cs)
+- HorizontalLayoutGroup: 水平布局，位于[Runtime/UI/Core/Layout/HorizontalLayoutGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/HorizontalLayoutGroup.cs)
+- VerticalLayoutGroup: 垂直布局，位于[Runtime/UI/Core/Layout/VerticalLayoutGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/VerticalLayoutGroup.cs)
+- GridLayoutGroup: 网格布局，位于[Runtime/UI/Core/Layout/GridLayoutGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/GridLayoutGroup.cs)
+- ContentSizeFitter: 内容大小适配，位于[Runtime/UI/Core/Layout/ContentSizeFitter.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/ContentSizeFitter.cs)
+
+### 其他组件
+- Canvas: UI画布，位于[Runtime/UI/Core/Canvas.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Canvas.cs)
+- CanvasGroup: 画布组，位于[Runtime/UI/Core/CanvasGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/CanvasGroup.cs)
+- CanvasScaler: 画布缩放器，位于[Runtime/UI/Core/CanvasScaler.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/CanvasScaler.cs)
+- GraphicRaycaster: 图形射线检测，位于[Runtime/UI/Core/GraphicRaycaster.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/GraphicRaycaster.cs)
+
+## 事件系统
+
+- EventSystem: 事件系统，位于[Runtime/EventSystem/EventSystem.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/EventSystem.cs)
+- EventTrigger: 事件触发器，位于[Runtime/EventSystem/EventTrigger.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/EventTrigger.cs)
+- UIBehaviour: UI行为基类，位于[Runtime/EventSystem/UIBehaviour.cs](mdc:Packages/com.unity.ugui/Runtime/EventSystem/UIBehaviour.cs)
+
+## 详细文档
+更详细的组件用法可以参考以下文档：
+- [UGUI组件使用指南](mdc:Docs/Guide/UGUI组件使用指南.md)

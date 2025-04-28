@@ -1,0 +1,72 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UGUI渲染系统指南
+
+Unity UGUI的渲染系统负责将UI元素绘制到屏幕上。本指南详细介绍了渲染系统的工作原理和优化方法。
+
+## 核心组件
+
+### Canvas
+- `Canvas`: UI画布，位于[Runtime/UI/Core/Canvas.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Canvas.cs)
+- `CanvasRenderer`: 画布渲染器，位于[Runtime/UI/Core/CanvasRenderer.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/CanvasRenderer.cs)
+- `CanvasScaler`: 画布缩放器，位于[Runtime/UI/Core/CanvasScaler.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/CanvasScaler.cs)
+
+### 图形元素
+- `Graphic`: 可视UI元素的基类，位于[Runtime/UI/Core/Graphic.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Graphic.cs)
+- `MaskableGraphic`: 支持遮罩的图形元素，位于[Runtime/UI/Core/MaskableGraphic.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/MaskableGraphic.cs)
+- `Image`: 显示Sprite图像，位于[Runtime/UI/Core/Image.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Image.cs)
+- `RawImage`: 显示Texture纹理，位于[Runtime/UI/Core/RawImage.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/RawImage.cs)
+- `Text`: 显示文本，位于[Runtime/UI/Core/Text.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Text.cs)
+
+### 遮罩系统
+- `Mask`: UI遮罩，位于[Runtime/UI/Core/Mask.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Mask.cs)
+- `RectMask2D`: 高性能矩形遮罩，位于[Runtime/UI/Core/RectMask2D.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/RectMask2D.cs)
+
+## 渲染流程
+
+### 渲染过程
+1. Canvas收集所有子Graphic元素
+2. CanvasRenderer处理元素绘制
+3. Canvas Batching合并相同材质的元素
+4. 最终通过CanvasRenderer渲染到屏幕
+
+### 渲染模式
+- `ScreenSpaceOverlay`: 屏幕空间覆盖
+- `ScreenSpaceCamera`: 屏幕空间相机
+- `WorldSpace`: 世界空间
+
+## 性能优化
+
+### Batching优化
+- 尽量使用同一个Canvas下的相同材质
+- 使用Sprite Atlas合并UI贴图
+- 避免使用过多的Canvas
+
+### 遮罩优化
+- 使用RectMask2D代替Mask
+- 避免深层嵌套遮罩
+- 合理设置遮罩区域
+
+### 渲染优化
+- 合理设置Canvas的Render Mode
+- 使用Canvas Group控制整体显示
+- 避免频繁重建UI
+
+## 最佳实践
+
+### 材质管理
+- 使用Sprite Atlas管理UI贴图
+- 合理设置Pixels Per Unit
+- 避免使用过多的材质
+
+### 渲染设置
+- 合理设置Canvas的Render Mode
+- 使用Canvas Scaler适配不同分辨率
+- 考虑不同设备的屏幕比例
+
+## 详细文档
+更详细的渲染系统用法可以参考：
+- [UGUI组件使用指南](mdc:Docs/Guide/UGUI组件使用指南.md)

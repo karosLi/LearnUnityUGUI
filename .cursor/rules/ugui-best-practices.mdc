@@ -1,0 +1,61 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UGUI最佳实践
+
+以下是使用Unity UGUI系统的一些最佳实践和注意事项。
+
+## 性能优化
+
+### UI Batching
+- 尽量使用同一个Canvas下的相同材质，减少Draw Call
+- 使用Sprite Atlas合并UI贴图，参考[这里的指南](mdc:Docs/Guide/UGUI组件使用指南.md#52-性能优化)
+- 避免使用过多的Canvas，特别是独立的Overlay模式Canvas
+
+### UI事件系统
+- 使用事件回调而不是在Update中检测输入
+- 合理设置Raycast Target，不需要交互的元素关闭此选项
+- 使用Canvas Group来管理整体交互状态
+
+### 内存管理
+- 使用对象池复用UI元素，特别是列表项
+- 实现虚拟列表来处理大量数据，仅显示可见部分
+- 通过设置父级的CanvasGroup.alpha=0来隐藏UI，而不是大量的SetActive调用
+
+## 布局系统
+
+### 锚点与适配
+- 正确使用Anchor和Pivot设置UI元素位置
+- 理解RectTransform的工作原理，避免硬编码位置
+- 使用Canvas Scaler适配不同分辨率
+
+### 布局组件
+- 优先使用Layout Group组织UI元素，而不是手动设置位置
+- 使用Content Size Fitter动态调整大小
+- 避免深层嵌套LayoutGroup，会影响性能
+
+## 代码架构
+
+### MVC/MVVM模式
+- 分离UI逻辑和业务逻辑
+- 使用数据绑定减少手动更新UI的代码
+- 参考[代码组织部分](mdc:Docs/Guide/UGUI组件使用指南.md#53-代码组织)
+
+### 事件系统
+- 使用事件委托进行模块间通信
+- 实现IPointerClickHandler等接口处理交互
+- 不要忘记移除事件监听，避免内存泄漏
+
+## 常见陷阱
+
+- 频繁调用LayoutRebuilder会严重影响性能
+- 不正确的SetActive操作会触发大量重建
+- 过多的UI特效和粒子会导致性能问题
+- 深层UI嵌套会增加布局计算开销
+
+## 最佳实践文档
+
+完整的最佳实践和代码示例可以参考：
+- [UGUI组件使用指南](mdc:Docs/Guide/UGUI组件使用指南.md)

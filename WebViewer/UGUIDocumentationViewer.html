@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UGUI文档与架构可视化</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .document-list {
+            list-style: none;
+            padding: 0;
+        }
+        .document-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #34495e;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .document-item:hover {
+            background-color: #3498db;
+        }
+        .animation-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .control-button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .control-button:hover {
+            background-color: #2980b9;
+        }
+        .architecture-diagram {
+            width: 100%;
+            height: 400px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .markdown-content {
+            line-height: 1.6;
+        }
+        .markdown-content h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .markdown-content h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        .markdown-content p {
+            margin: 15px 0;
+        }
+        .markdown-content code {
+            background-color: #f8f9fa;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>UGUI文档目录</h2>
+            <ul class="document-list">
+                <li class="document-item" onclick="loadDocument('architecture')">UGUI架构</li>
+                <li class="document-item" onclick="loadDocument('event-system')">事件系统</li>
+                <li class="document-item" onclick="loadDocument('optimization')">优化指南</li>
+                <li class="document-item" onclick="loadDocument('animation')">交互式动画</li>
+                <li class="document-item" style="background-color: #e74c3c;" onclick="window.location.href='UGUIArchitectureViewer.html'">新版架构动画查看器</li>
+            </ul>
+        </div>
+        <div class="content">
+            <div id="document-content" class="markdown-content">
+                <!-- 文档内容将在这里动态加载 -->
+            </div>
+            <div class="animation-container">
+                <h2>架构图动画</h2>
+                <div id="architecture-diagram" class="architecture-diagram">
+                    <!-- 架构图将在这里动态加载 -->
+                </div>
+                <div class="controls">
+                    <button class="control-button" onclick="playAnimation()">播放</button>
+                    <button class="control-button" onclick="pauseAnimation()">暂停</button>
+                    <button class="control-button" onclick="resetAnimation()">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 文档内容
+        const documents = {
+            'architecture': {
+                title: 'UGUI架构',
+                content: `
+# UGUI架构
+
+UGUI（Unity GUI）是Unity引擎的UI系统，它提供了一个完整的UI解决方案。
+
+## 核心组件
+
+1. Canvas
+   - 所有UI元素的容器
+   - 负责渲染和事件处理
+
+2. EventSystem
+   - 处理用户输入
+   - 管理事件分发
+
+3. RectTransform
+   - UI元素的变换组件
+   - 处理布局和定位
+
+## 渲染流程
+
+1. 事件收集
+2. 事件处理
+3. 布局计算
+4. 渲染绘制
+                `
+            },
+            'event-system': {
+                title: '事件系统',
+                content: `
+# UGUI事件系统
+
+UGUI的事件系统是一个基于接口的事件处理机制。
+
+## 主要接口
+
+1. IPointerDownHandler
+2. IPointerUpHandler
+3. IPointerClickHandler
+4. IDragHandler
+
+## 事件流程
+
+1. 事件触发
+2. 事件分发
+3. 事件处理
+4. 事件响应
+                `
+            }
+        };
+
+        // 加载文档
+        function loadDocument(docId) {
+            const doc = documents[docId];
+            if (doc) {
+                document.getElementById('document-content').innerHTML = doc.content;
+            }
+        }
+
+        // 动画控制
+        function playAnimation() {
+            // 实现动画播放逻辑
+            console.log('播放动画');
+        }
+
+        function pauseAnimation() {
+            // 实现动画暂停逻辑
+            console.log('暂停动画');
+        }
+
+        function resetAnimation() {
+            // 实现动画重置逻辑
+            console.log('重置动画');
+        }
+
+        // 初始化加载第一个文档
+        loadDocument('architecture');
+    </script>
+</body>
+</html> 

@@ -1,0 +1,88 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UGUI布局系统指南
+
+Unity UGUI的布局系统是构建响应式UI的关键。本指南详细介绍了布局系统的核心概念和使用方法。
+
+## 核心组件
+
+### RectTransform
+- 所有UI元素的基础组件，控制位置、大小和锚点
+- 位于Unity内部，但通过Inspector和代码可以完全控制
+- 关键属性：
+  - `anchoredPosition`: 相对于锚点的位置
+  - `sizeDelta`: 相对于锚点的大小
+  - `anchorMin`/`anchorMax`: 锚点范围(0-1)
+  - `pivot`: 轴心点(0-1)
+
+### 布局组件
+- `LayoutGroup`: 布局组基类，位于[Runtime/UI/Core/Layout/LayoutGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/LayoutGroup.cs)
+- `HorizontalLayoutGroup`: 水平布局，位于[Runtime/UI/Core/Layout/HorizontalLayoutGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/HorizontalLayoutGroup.cs)
+- `VerticalLayoutGroup`: 垂直布局，位于[Runtime/UI/Core/Layout/VerticalLayoutGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/VerticalLayoutGroup.cs)
+- `GridLayoutGroup`: 网格布局，位于[Runtime/UI/Core/Layout/GridLayoutGroup.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/GridLayoutGroup.cs)
+
+### 适配组件
+- `ContentSizeFitter`: 内容大小适配，位于[Runtime/UI/Core/Layout/ContentSizeFitter.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/ContentSizeFitter.cs)
+- `AspectRatioFitter`: 纵横比适配，位于[Runtime/UI/Core/Layout/AspectRatioFitter.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/AspectRatioFitter.cs)
+- `LayoutElement`: 布局元素，位于[Runtime/UI/Core/Layout/LayoutElement.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/LayoutElement.cs)
+
+## 布局流程
+
+### 布局计算
+1. 当RectTransform或LayoutGroup属性改变时，标记需要重建
+2. LayoutRebuilder按照从父到子的顺序计算最小/首选大小
+3. 然后从子到父应用布局规则
+4. Canvas触发重建（通常在LateUpdate中）
+
+### 布局重建
+- `LayoutRebuilder`: 负责重新计算和应用布局，位于[Runtime/UI/Core/Layout/LayoutRebuilder.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/Layout/LayoutRebuilder.cs)
+- `CanvasUpdateRegistry`: 管理Canvas更新，位于[Runtime/UI/Core/CanvasUpdateRegistry.cs](mdc:Packages/com.unity.ugui/Runtime/UI/Core/CanvasUpdateRegistry.cs)
+
+## 常用布局模式
+
+### 固定布局
+- 使用RectTransform直接设置位置和大小
+- 适用于静态UI元素
+
+### 流式布局
+- 使用HorizontalLayoutGroup或VerticalLayoutGroup
+- 适用于动态内容列表
+
+### 网格布局
+- 使用GridLayoutGroup
+- 适用于图标网格、物品栏等
+
+### 自适应布局
+- 使用ContentSizeFitter
+- 适用于文本内容、动态高度元素
+
+## 性能优化
+
+### 布局重建优化
+- 避免频繁修改布局属性
+- 使用LayoutElement设置最小/首选大小
+- 合理使用LayoutGroup的childForceExpandWidth/Height
+
+### 嵌套优化
+- 避免深层嵌套LayoutGroup
+- 使用LayoutElement控制子元素大小
+- 合理设置LayoutGroup的spacing和padding
+
+## 最佳实践
+
+### 锚点设置
+- 使用预设锚点快速设置常见布局
+- 理解锚点与轴心点的关系
+- 避免使用绝对位置
+
+### 响应式设计
+- 使用Canvas Scaler适配不同分辨率
+- 合理使用LayoutGroup的childAlignment
+- 考虑不同设备的屏幕比例
+
+## 详细文档
+更详细的布局系统用法可以参考：
+- [UGUI组件使用指南](mdc:Docs/Guide/UGUI组件使用指南.md)
