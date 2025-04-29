@@ -541,8 +541,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ugui-knowledge-base:latest
-            ghcr.io/${{ github.repository_owner }}/ugui-knowledge-base:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
       - name: Create package.json
         run: |
           echo '{
