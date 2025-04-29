@@ -1,0 +1,123 @@
+{
+  "name": "ugui-kb-github",
+  "version": "1.0.0",
+  "description": "Unity UGUI系统的结构化知识库",
+  "local_mode": false,
+  "api": {
+    "base_url": "http://localhost:5000",
+    "endpoints": {
+      "index": {
+        "path": "/api/index",
+        "method": "GET",
+        "description": "获取知识库索引，包括所有分类和文档列表"
+      },
+      "document": {
+        "path": "/api/docs/{category}/{doc_id}",
+        "method": "GET",
+        "params": [
+          {
+            "name": "category",
+            "type": "string",
+            "description": "文档分类，可选值：architecture, animation, guide, best_practice"
+          },
+          {
+            "name": "doc_id",
+            "type": "string",
+            "description": "文档ID，根据分类不同而不同"
+          }
+        ],
+        "description": "获取指定分类和ID的文档内容"
+      },
+      "search": {
+        "path": "/api/search",
+        "method": "GET",
+        "params": [
+          {
+            "name": "keyword",
+            "type": "string",
+            "description": "搜索关键词"
+          }
+        ],
+        "description": "搜索文档内容，返回匹配的文档列表和上下文"
+      },
+      "visualization": {
+        "path": "/api/visualize/{diagram_id}",
+        "method": "GET",
+        "params": [
+          {
+            "name": "diagram_id",
+            "type": "string",
+            "description": "图表ID，可选值：architecture, animation, documentation"
+          }
+        ],
+        "description": "获取可视化图表"
+      },
+      "example": {
+        "path": "/api/examples/{example_id}",
+        "method": "GET",
+        "params": [
+          {
+            "name": "example_id",
+            "type": "string",
+            "description": "示例ID，对应Scripts目录下的脚本文件名（不含扩展名）"
+          }
+        ],
+        "description": "获取代码示例"
+      }
+    }
+  },
+  "categories": {
+    "architecture": {
+      "name": "UGUI架构与原理",
+      "documents": {
+        "basic": "UGUI基础架构",
+        "detailed": "UGUI详细架构",
+        "complete": "UGUI完整架构",
+        "system_relations": "UGUI系统关系",
+        "event_system": "UGUI事件系统"
+      }
+    },
+    "animation": {
+      "name": "UGUI交互式动画",
+      "documents": {
+        "index": "交互式动画索引",
+        "architecture": "架构交互式动画",
+        "sequence": "时序交互式动画"
+      }
+    },
+    "guide": {
+      "name": "UGUI使用指南",
+      "documents": {
+        "components": "组件使用指南",
+        "animation_basic": "交互式动画指南",
+        "animation_advanced": "交互式动画高级指南",
+        "animation_optimization": "交互式动画优化"
+      }
+    },
+    "best_practice": {
+      "name": "UGUI最佳实践",
+      "documents": {
+        "optimization": "优化指南",
+        "cursor_rules": "Cursor规则"
+      }
+    }
+  },
+  "visualizations": {
+    "architecture": "UGUI架构可视化",
+    "animation": "UGUI动画可视化",
+    "documentation": "UGUI文档可视化"
+  },
+  "usage": {
+    "setup": [
+      "安装依赖：pip install flask flask-cors markdown",
+      "启动API服务器：python KnowledgeBase/api.py",
+      "API服务器将在 http://localhost:5000 运行"
+    ],
+    "examples": [
+      "获取知识库索引：GET http://localhost:5000/api/index",
+      "获取UGUI基础架构文档：GET http://localhost:5000/api/docs/architecture/basic",
+      "搜索'Canvas'相关内容：GET http://localhost:5000/api/search?keyword=Canvas",
+      "获取架构可视化：GET http://localhost:5000/api/visualize/architecture"
+    ]
+  }
+}
