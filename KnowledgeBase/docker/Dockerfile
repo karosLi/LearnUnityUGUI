@@ -29,4 +29,4 @@ EXPOSE 5000
 EXPOSE 8000
 
 # 启动命令
-CMD ["python", "start_knowledge_base.py", "--mcp-server"]
+CMD ["python", "docker/start.py", "--mcp-server"]

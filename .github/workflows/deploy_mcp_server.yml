@@ -32,7 +32,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./KnowledgeBase/Dockerfile
+          file: ./KnowledgeBase/docker/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ env.REPO_LC }}/mcp-knowledge-base:latest
