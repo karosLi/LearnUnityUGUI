@@ -8,7 +8,7 @@ WORKDIR /app
 ARG DOCS_PATH=./Docs
 
 # 复制依赖文件
-COPY KnowledgeBase/requirements.txt ./
+COPY KnowledgeBase/core/requirements.txt ./
 
 # 安装依赖
 RUN pip install --no-cache-dir -r requirements.txt
