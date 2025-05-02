@@ -35,7 +35,7 @@ jobs:
           file: ./KnowledgeBase/docker/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/ugui-knowledge-base:latest
-            ghcr.io/${{ github.actor }}/ugui-knowledge-base:${{ github.sha }}
+            ghcr.io/${{ env.REPO_LC }}/ugui-knowledge-base:latest
+            ghcr.io/${{ env.REPO_LC }}/ugui-knowledge-base:${{ github.sha }}
           build-args: |
             DOCS_PATH=./Docs
