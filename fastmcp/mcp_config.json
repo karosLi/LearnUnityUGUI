@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "ugui-kb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "ugui-kb-github"
+      ]
+    }
+  },
+  "api": {
+    "base_url": "http://localhost:5000",
+    "endpoints": {
+      "index": {
+        "path": "/api/index",
+        "method": "GET"
+      }
+    }
+  },
+  "deployment": {
+    "docker": {
+      "image": "ghcr.io/${{ github.repository_owner }}/ugui-knowledge-base:latest",
+      "ports": [5000, 8000]
+    },
+    "fastmcp": {
+      "install_script": "./install.sh"
+    }
+  }
+}

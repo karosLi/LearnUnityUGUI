@@ -1,4 +1,15 @@
 {
+  "mcpServers": {
+    "ugui-kb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "ugui-kb-github"
+      ]
+    }
+  },
   "name": "ugui-kb-github",
   "version": "1.0.0",
   "description": "Unity UGUI系统的结构化知识库",

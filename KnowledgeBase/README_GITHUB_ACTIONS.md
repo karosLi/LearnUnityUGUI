@@ -4,6 +4,52 @@
 
 本文档提供了关于如何使用GitHub Actions自动部署UGUI知识库MCP服务器的详细说明。通过本指南配置的自动化流程，可以在代码推送到main分支时自动构建并发布Docker镜像到GitHub Container Registry。
 
+## 客户端安装方式
+### NPM包安装
+```bash
+npm install -g ugui-knowledge-base
+mcp-server start --port 5000
+```
+
+## 部署方式
+
+### Docker部署
+```bash
+# 快速启动
+curl -sSL https://raw.githubusercontent.com/[用户名]/ugui-knowledge-base/main/fastmcp/install.sh | bash
+
+docker run -d \
+  -p 5000:5000 \
+  -p 8000:8000 \
+  -e DOCS_PATH=./docs \
+  -e MCP_PORT=8000 \
+  ghcr.io/${{ github.repository_owner }}/ugui-knowledge-base:latest
+```
+
+### FastMCP部署
+```bash
+# 一键安装
+cd fastmcp && ./install.sh --port 8000 --docs-path ./docs
+
+# 环境变量
+MCP_PORT=8000         # MCP服务端口
+DOCS_PATH=./docs      # 文档存储路径
+LOG_LEVEL=info        # 日志级别
+```
+
+## 客户端工具
+### NPM包使用
+```bash
+# 安装
+npm install -g @ugui-knowledge-base/client
+
+# 配置环境
+export MCP_SERVER=http://localhost:8000
+
+# 查询文档分类
+ugui-client list-categories
+```
+
 ## 已完成的配置
 
 我们已经完成了以下配置工作：
@@ -74,6 +120,30 @@
 - 实现与MCP服务器的交互方法
 - 更新命令行参数
 
+## MCP服务器配置
+
+### 配置文件示例
+```json
+{
+  "mcpServers": {
+    "ugui-kb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "ugui-kb-github"
+      ]
+    }
+  }
+}
+```
+
+### 配置参数说明
+- `command`: 启动命令
+- `args`: 命令行参数数组
+- 支持同时配置多个MCP服务器
+
 ## 使用方法
 
 ### 本地测试
@@ -106,8 +176,8 @@ python KnowledgeBase/mcp_client.py --mode mcp categories
 ### 使用Docker镜像
 
 ```bash
-docker pull ghcr.io/[用户名]/[仓库名]/mcp-knowledge-base:latest
-docker run -p 5000:5000 -p 8000:8000 ghcr.io/[用户名]/[仓库名]/mcp-knowledge-base:latest
+docker pull ghcr.io/${{ github.repository_owner }}/ugui-knowledge-base:latest
+docker run -p 5000:5000 -p 8000:8000 ghcr.io/${{ github.repository_owner }}/ugui-knowledge-base:latest
 ```
 
 ## 故障排除
